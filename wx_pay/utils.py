@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "sven"
+import logging
 
 import uuid
 import hashlib
@@ -25,7 +26,7 @@ def dict_to_xml(data):
     :param data:
     :return:
     """
-    return "<xml>{}</xml>".format("\n".join(["<{}><![CDATA[{}]]></{}>".format(key, data[key], key) for key in data]))
+    return "<xml>{0}</xml>".format("\n".join(["<{0}><![CDATA[{1}]]></{0}>".format(key, data[key]) for key in data if data[key] is not None]))
 
 
 def uuid32():
@@ -35,29 +36,17 @@ def uuid32():
     """
     return ''.join(uuid.uuid4().hex.split("-"))
 
-def generate_sign_MD5(mustbe_dict):
+def generate_sign_MD5(mustbe_dict, key):
     """
     生成签名
     :param mustbe_dict:
     :return:
     """
-    sign_str = "&".join(["{}={}".format(key, mustbe_dict[key]) for key in sorted(mustbe_dict.keys())])
-    return hashlib.md5(sign_str).hexdigest().upper()
+    sign_str = "&".join(["{}={}".format(key, mustbe_dict[key]) for key in sorted(mustbe_dict.keys()) if mustbe_dict[key] is not None])
+    sign_str += "&key=%s"%key
+    return hashlib.md5(sign_str.encode("utf-8")).hexdigest().upper()
 
 
-def generate_xml(mustbe_dict, mch_key, sign_generator=generate_sign_MD5, dict2xml=dict_to_xml):
-    """
-    生成xml
-    :param mustbe_dict:
-    :param mch_key:
-    :param dict2xml:
-    :return:
-    """
-    mustbe_dict["key"] = mch_key
-    sign = sign_generator(mustbe_dict)
-    mustbe_dict["sign"] = sign
-    mustbe_dict.pop("key", None)
-    return dict_to_xml(mustbe_dict)
 
 
 
